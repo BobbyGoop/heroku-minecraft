@@ -12,7 +12,7 @@ function check() {
 }
 
 const inter = setInterval(function () {
-  console.log("Checking for serveo.log")
+  console.log("Checking for ngrok.log")
   if (check()) {
     log = fs.readFileSync('ngrok.log', { encoding: 'utf-8' })
     if (!log.includes('Warning: remote port forwarding failed for listen port')) {
@@ -24,11 +24,11 @@ const inter = setInterval(function () {
           }
         }
       } else {
-        console.log('Serveo port retry')
+        console.log('Ngrok port retry')
       }
     } else {
 
-      ip = 'Serveo failed, port specified is already taken.'
+      ip = 'Ngrok failed, port specified is already taken.'
     }
     start()
     clearInterval(inter)
