@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Do an inline sync first, then start the background job
+echo "Starting sync..."
+bin/sync
+if [ "$READ_ONLY" != "true" ]; then
+  eval "while true; do sleep ${AWS_SYNC_INTERVAL:-180}; bin/sync; done &"
+  sync_pid=$!
+fi
+
 mc_port=25565
 port=${1:-${PORT:-8080}}
 
@@ -28,33 +36,29 @@ fi
 # Flush the logfile every second, and ensure that the logfile exists
 screen -X "logfile 1" && sleep 1
 
+echo "Tailing log"
+eval "tail -f screenlog.0 &"
+tail_pid=$!
+
 # Start the TCP tunnel
-# ngrok_cmd="bin/ngrok tcp -authtoken $NGROK_API_TOKEN -log stdout --log-level debug ${NGROK_OPTS} ${mc_port}"
 ngrok_cmd="bin/ngrok tcp -authtoken $NGROK_API_TOKEN -log stdout --log-level debug -region=eu ${mc_port}"
 echo "Starting ngrok..."
 eval "$ngrok_cmd | tee ngrok.log &"
 ngrok_pid=$!
 
-# Do an inline sync first, then start the background job
-echo "Starting sync..."
-bin/sync
-if [ "$READ_ONLY" != "true" ]; then
-  eval "while true; do sleep ${AWS_SYNC_INTERVAL:-180}; bin/sync; done &"
-  sync_pid=$!
-fi
 
-# update server config
-# echo "server-port=${mc_port}" >> /app/server.properties
+sigterm() {
+  bin/sync
+  kill $ngrok_pid $main_pid $sync_pid $tail_pid 
+}
 
-# for f in whitelist banned-players banned-ips ops; do
-#   test ! -f $f.json && echo -n "[]" > $f.json
-# done
+sigkill() {
+  bin/sync
+  kill -9 $ngrok_pid $main_pid $sync_pid $tail_pid; exit
+}
 
-echo "Tailing log"
-eval "tail -f screenlog.0 &"
-tail_pid=$!
+trap sigterm SIGTERM
+trap sigkill SIGKILL
 
-trap "kill $ngrok_pid $main_pid $sync_pid $tail_pid" SIGTERM
-trap "kill -9 $ngrok_pid $main_pid $sync_pid $tail_pid; exit" SIGKILL
-
-eval "ruby -rwebrick -e'WEBrick::HTTPServer.new(:BindAddress => \"0.0.0.0\", :Port => ${port}, :MimeTypes => {\"rhtml\" => \"text/html\"}, :DocumentRoot => Dir.pwd).start'"
+# Start website
+node bin/index.js
