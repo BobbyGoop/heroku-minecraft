@@ -41,6 +41,7 @@ eval "tail -f screenlog.0 &"
 tail_pid=$!
 
 # Start the TCP tunnel
+touch "bin/ngrok.log"
 ngrok_cmd="bin/ngrok tcp -authtoken $NGROK_API_TOKEN -region=eu ${mc_port} --log-level debug --log=stdout > ngrok.log &"
 echo "Starting ngrok..."
 eval "$ngrok_cmd"
