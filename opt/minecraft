@@ -8,6 +8,13 @@ if [ -z "$NGROK_API_TOKEN" ]; then
   exit 1
 fi
 
+echo "Starting: minecraft ${mc_port}"
+eval "screen -L -h 2048 -dmS minecraft java -Xmx${heap} -Xms${heap} -jar minecraft.jar nogui"
+main_pid=$!
+
+# Flush the logfile every second, and ensure that the logfile exists
+screen -X "logfile 1" && sleep 1
+
 # Start the TCP tunnel
 # ngrok_cmd="bin/ngrok tcp -authtoken $NGROK_API_TOKEN -log stdout --log-level debug ${NGROK_OPTS} ${mc_port}"
 ngrok_cmd="bin/ngrok tcp -authtoken $NGROK_API_TOKEN -log stdout --log-level debug -region=eu ${mc_port}"
@@ -42,13 +49,6 @@ case $limit in
   heap="384m"
   ;;
 esac
-
-echo "Starting: minecraft ${mc_port}"
-eval "screen -L -h 2048 -dmS minecraft java -Xmx${heap} -Xms${heap} -jar minecraft.jar nogui"
-main_pid=$!
-
-# Flush the logfile every second, and ensure that the logfile exists
-screen -X "logfile 1" && sleep 1
 
 echo "Tailing log"
 eval "tail -f screenlog.0 &"
