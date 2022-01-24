@@ -4,16 +4,17 @@ var fs = require('fs')
 var http = require('http')
 log = null
 ip = ''
+
 // Get port of ngrok from ngrok.log
 function check() {
-  var log = fs.readFileSync('serveo.log', { encoding: 'utf-8' })
+  var log = fs.readFileSync('ngrok.log', { encoding: 'utf-8' })
   return log.split('\n')[1] !== undefined;
 }
 
 const inter = setInterval(function () {
   console.log("Checking for serveo.log")
   if (check()) {
-    log = fs.readFileSync('serveo.log', { encoding: 'utf-8' })
+    log = fs.readFileSync('ngrok.log', { encoding: 'utf-8' })
     if (!log.includes('Warning: remote port forwarding failed for listen port')) {
       if (!log.split('\n')[log.split('\n').length - 1].includes("connect_to localhost port")) {
         for (i in log) {
