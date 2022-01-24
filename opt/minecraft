@@ -9,7 +9,8 @@ if [ -z "$NGROK_API_TOKEN" ]; then
 fi
 
 # Start the TCP tunnel
-ngrok_cmd="bin/ngrok tcp -authtoken $NGROK_API_TOKEN -log stdout --log-level debug ${NGROK_OPTS} ${mc_port}"
+# ngrok_cmd="bin/ngrok tcp -authtoken $NGROK_API_TOKEN -log stdout --log-level debug ${NGROK_OPTS} ${mc_port}"
+ngrok_cmd="bin/ngrok tcp -authtoken $NGROK_API_TOKEN -log stdout --log-level debug -region=eu ${mc_port}"
 echo "Starting ngrok..."
 eval "$ngrok_cmd | tee ngrok.log &"
 ngrok_pid=$!
@@ -18,7 +19,7 @@ ngrok_pid=$!
 echo "Starting sync..."
 bin/sync
 if [ "$READ_ONLY" != "true" ]; then
-  eval "while true; do sleep ${AWS_SYNC_INTERVAL:-60}; bin/sync; done &"
+  eval "while true; do sleep ${AWS_SYNC_INTERVAL:-180}; bin/sync; done &"
   sync_pid=$!
 fi
 
