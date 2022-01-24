@@ -42,7 +42,9 @@ tail_pid=$!
 
 # Start the TCP tunnel
 echo "Starting ngrok..."
-ngrok_cmd="bin/ngrok tcp --authtoken=${NGROK_API_TOKEN} --region=eu --log-level=debug --log=stdout ${mc_port}"
+eval "bin/ngrok authtoken ${NGROK_API_TOKEN}"
+ngrok_cmd = "bin/ngrok tcp --region=eu --log-level=debug --log=stdout ${mc_port}"
+eval "${ngrok_cmd} | tee ngrok.log &"
 ngrok_pid=$!
 
 
