@@ -44,7 +44,7 @@ tail_pid=$!
 echo "Starting ngrok..."
 eval "bin/ngrok authtoken ${NGROK_API_TOKEN}"
 ngrok_cmd = "bin/ngrok tcp --region=eu --log-level=debug --log=stdout ${mc_port}"
-eval "${ngrok_cmd} | tee ngrok.log &"
+eval "$ngrok_cmd | tee ngrok.log &"
 ngrok_pid=$!
 
 
